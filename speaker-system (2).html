@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AMPLIFY — Live Speaker System</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --border: #1f1f1f;
+    --accent: #e8ff00;
+    --accent2: #ff4d00;
+    --text: #f0f0f0;
+    --muted: #555;
+    --active-glow: 0 0 30px rgba(232,255,0,0.3), 0 0 60px rgba(232,255,0,0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { min-height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: relative;
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+             env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 520px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  /* ── Header ── */
+  .header { text-align: center; }
+
+  .title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(56px, 15vw, 96px);
+    color: var(--accent);
+    line-height: 0.9;
+    text-shadow: 4px 4px 0 var(--accent2), 8px 8px 0 rgba(232,255,0,0.1);
+    letter-spacing: 4px;
+  }
+
+  .subtitle {
+    font-size: 10px;
+    letter-spacing: 6px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  /* ── Warning banner ── */
+  .warning {
+    display: none;
+    width: 100%;
+    padding: 10px 14px;
+    background: rgba(255,77,0,0.1);
+    border: 1px solid rgba(255,77,0,0.3);
+    border-radius: 4px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .warning.visible { display: block; }
+
+  /* ── Visualizer ── */
+  .visualizer-wrap {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 80px;
+  }
+
+  .visualizer-label {
+    position: absolute;
+    top: 8px;
+    left: 12px;
+    font-size: 9px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* ── Panel ── */
+  .panel {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /*
+   * Device grid: 2 cols when both rows are visible, 1 col otherwise.
+   * We use a data attribute on the grid to switch layout without media queries.
+   */
+  .device-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .device-grid[data-cols="1"] {
+    grid-template-columns: 1fr;
+  }
+
+  @media (max-width: 380px) {
+    .device-grid { grid-template-columns: 1fr; }
+  }
+
+  .device-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .device-row.hidden { display: none; }
+
+  /* ── Power button ── */
+  .power-btn {
+    align-self: center;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: #0d0d0d;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    /* Ensure a reliable tap area on mobile */
+    position: relative;
+  }
+
+  .power-btn svg {
+    width: 34px;
+    height: 34px;
+    stroke: var(--muted);
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    transition: stroke 0.2s ease, filter 0.2s ease;
+    /* prevent SVG from swallowing pointer events */
+    pointer-events: none;
+  }
+
+  .power-btn:hover:not(:disabled) { border-color: var(--accent); }
+  .power-btn:hover:not(:disabled) svg { stroke: var(--accent); }
+
+  .power-btn.active {
+    border-color: var(--accent);
+    box-shadow: var(--active-glow), inset 0 0 20px rgba(232,255,0,0.05);
+    animation: pulse-ring 2s infinite;
+  }
+
+  .power-btn.active svg {
+    stroke: var(--accent);
+    filter: drop-shadow(0 0 6px rgba(232,255,0,0.7));
+  }
+
+  .power-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    animation: none !important;
+  }
+
+  @keyframes pulse-ring {
+    0%   { box-shadow: var(--active-glow), 0 0 0 0   rgba(232,255,0,0.2); }
+    70%  { box-shadow: var(--active-glow), 0 0 0 12px rgba(232,255,0,0);   }
+    100% { box-shadow: var(--active-glow), 0 0 0 0   rgba(232,255,0,0);   }
+  }
+
+  /* ── Sliders ── */
+  .slider-row { display: flex; flex-direction: column; gap: 10px; }
+
+  .slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .slider-label {
+    font-size: 9px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .slider-value {
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 500;
+    min-width: 44px;
+    text-align: right;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    /* prevent page scroll on touch-drag of sliders */
+    touch-action: pan-y;
+  }
+
+  /* Webkit / Blink: Chrome, Safari, Edge, iOS Safari */
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    background: var(--accent);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: transform 0.1s;
+    box-shadow: 0 0 8px rgba(232,255,0,0.5);
+  }
+  input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
+
+  /* Firefox */
+  input[type="range"]::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    background: var(--accent);
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(232,255,0,0.5);
+  }
+  input[type="range"]::-moz-range-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    border: none;
+  }
+  /* Remove the default Firefox focus ring on range */
+  input[type="range"]::-moz-focus-outer { border: 0; }
+
+  /* ── Status bar ── */
+  .status-bar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: background 0.3s, box-shadow 0.3s;
+    flex-shrink: 0;
+  }
+
+  .status-dot.on {
+    background: var(--accent);
+    box-shadow: 0 0 8px rgba(232,255,0,0.7);
+    animation: blink 1.5s infinite;
+  }
+
+  .status-dot.error {
+    background: var(--accent2);
+    box-shadow: 0 0 8px rgba(255,77,0,0.7);
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+  }
+
+  .status-text {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    flex: 1;
+    transition: color 0.3s;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .status-text.on    { color: var(--accent); }
+  .status-text.error { color: var(--accent2); }
+
+  .latency {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ── Selects ── */
+  select {
+    width: 100%;
+    min-width: 0;
+    background: #0d0d0d;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 9px 26px 9px 10px;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23555' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 9px center;
+  }
+
+  select:focus { border-color: var(--accent); }
+  select option { background: #111; }
+
+  /* ── Echo cancel toggle ── */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .toggle-label-text {
+    font-size: 9px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .toggle-group {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .toggle-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 7px 13px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .toggle-btn + .toggle-btn { border-left: 1px solid var(--border); }
+
+  .toggle-btn.on  { background: var(--accent); color: #000; }
+  .toggle-btn.off { background: var(--accent2); color: #fff; }
+
+  .toggle-btn:not(.on):not(.off):hover {
+    color: var(--text);
+    background: rgba(255,255,255,0.05);
+  }
+
+  /* ── Footer ── */
+  .footer {
+    font-size: 9px;
+    color: #2a2a2a;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    padding-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="title">AMPLIFY</div>
+    <div class="subtitle">Live Mic — Speaker Passthrough</div>
+  </div>
+
+  <div class="warning" id="warning"></div>
+
+  <div class="visualizer-wrap">
+    <span class="visualizer-label">Signal</span>
+    <canvas id="visualizer"></canvas>
+  </div>
+
+  <div class="panel">
+    <div class="device-grid" id="deviceGrid">
+      <div class="device-row" id="inputRow">
+        <div class="slider-label">↑ Input</div>
+        <select id="micSelect"><option value="">Default Mic</option></select>
+      </div>
+      <div class="device-row hidden" id="outputRow">
+        <div class="slider-label">↓ Output</div>
+        <select id="speakerSelect"><option value="">Default Output</option></select>
+      </div>
+    </div>
+
+    <button class="power-btn" id="powerBtn" title="Toggle passthrough">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 2v6M6.3 6.3a8 8 0 1 0 11.4 0"/>
+      </svg>
+    </button>
+
+    <div class="slider-row">
+      <div class="slider-header">
+        <span class="slider-label">Volume</span>
+        <span class="slider-value" id="volVal">80%</span>
+      </div>
+      <input type="range" id="volumeSlider" min="0" max="200" value="80">
+    </div>
+
+    <div class="slider-row">
+      <div class="slider-header">
+        <span class="slider-label">Input Gain</span>
+        <span class="slider-value" id="gainVal">1.0×</span>
+      </div>
+      <input type="range" id="gainSlider" min="1" max="40" value="10">
+    </div>
+
+    <div class="toggle-row">
+      <span class="toggle-label-text">Echo Cancel</span>
+      <div class="toggle-group">
+        <button class="toggle-btn on"  id="echoOn"  type="button">On</button>
+        <button class="toggle-btn"     id="echoOff" type="button">Off</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-dot" id="statusDot"></div>
+    <div class="status-text" id="statusText">Standby — press power to begin</div>
+    <div class="latency" id="latency"></div>
+  </div>
+
+  <div class="footer">Web Audio API · Use headphones to avoid feedback</div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── DOM ────────────────────────────────────────────────────────────────────
+  const powerBtn      = document.getElementById('powerBtn');
+  const volumeSlider  = document.getElementById('volumeSlider');
+  const gainSlider    = document.getElementById('gainSlider');
+  const volVal        = document.getElementById('volVal');
+  const gainVal       = document.getElementById('gainVal');
+  const statusDot     = document.getElementById('statusDot');
+  const statusText    = document.getElementById('statusText');
+  const latencyEl     = document.getElementById('latency');
+  const micSelect     = document.getElementById('micSelect');
+  const speakerSelect = document.getElementById('speakerSelect');
+  const outputRow     = document.getElementById('outputRow');
+  const deviceGrid    = document.getElementById('deviceGrid');
+  const canvas        = document.getElementById('visualizer');
+  const canvasCtx     = canvas.getContext('2d');
+  const warningEl     = document.getElementById('warning');
+
+  // ── Capability detection ───────────────────────────────────────────────────
+  const AudioCtxCtor = window.AudioContext || window.webkitAudioContext || null;
+  const canGetMic    = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+  // Whether AudioContext.prototype.setSinkId exists (Chrome 110+)
+  // This is the ONLY reliable cross-platform test — no UA sniffing.
+  const canSetSink = AudioCtxCtor
+    ? (typeof AudioCtxCtor.prototype.setSinkId === 'function')
+    : false;
+
+  // Hide output selector until we confirm the browser can use it
+  setOutputRowVisible(false);
+
+  function setOutputRowVisible(visible) {
+    if (visible) {
+      outputRow.classList.remove('hidden');
+      deviceGrid.setAttribute('data-cols', '2');
+    } else {
+      outputRow.classList.add('hidden');
+      deviceGrid.setAttribute('data-cols', '1');
+    }
+  }
+
+  // ── Upfront warnings ───────────────────────────────────────────────────────
+  function showWarning(msg) {
+    warningEl.textContent = msg;
+    warningEl.classList.add('visible');
+  }
+
+  if (!AudioCtxCtor) {
+    showWarning('Web Audio API is not supported in this browser.');
+    powerBtn.disabled = true;
+  } else if (!canGetMic) {
+    showWarning('Microphone access requires HTTPS. Please serve this page over a secure connection.');
+    powerBtn.disabled = true;
+  }
+
+  // ── Audio state ────────────────────────────────────────────────────────────
+  let audioCtx       = null;
+  let stream         = null;
+  let sourceNode     = null;
+  let gainNode       = null;
+  let analyserNode   = null;
+  let gainOutputNode = null;
+  let isActive       = false;
+  let isBusy         = false;
+
+  // Pending device selections that will take effect on next start.
+  // On platforms where device change can't restart mid-gesture (iOS),
+  // we just store the intent and apply it when power is pressed.
+  let pendingMicId     = '';
+  let pendingSpeakerId = '';
+
+  // Echo / noise cancellation — ON by default to prevent speaker feedback
+  let echoCancel = true;
+
+  // ── Canvas — defer sizing until after first paint ──────────────────────────
+  function resizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    const w   = canvas.offsetWidth;
+    const h   = canvas.offsetHeight;
+    if (w > 0 && h > 0) {
+      canvas.width  = w * dpr;
+      canvas.height = h * dpr;
+    }
+  }
+  window.addEventListener('resize', resizeCanvas);
+  requestAnimationFrame(() => requestAnimationFrame(resizeCanvas));
+
+  // ── Visualizer loop ────────────────────────────────────────────────────────
+  (function drawVisualizer() {
+    requestAnimationFrame(drawVisualizer);
+    const W = canvas.width, H = canvas.height;
+    if (!W || !H) return;
+    canvasCtx.clearRect(0, 0, W, H);
+
+    if (!analyserNode || !isActive) {
+      canvasCtx.strokeStyle = '#1f1f1f';
+      canvasCtx.lineWidth = 1.5;
+      canvasCtx.beginPath();
+      canvasCtx.moveTo(0, H / 2);
+      canvasCtx.lineTo(W, H / 2);
+      canvasCtx.stroke();
+      return;
+    }
+
+    const bufLen = analyserNode.frequencyBinCount;
+    const data   = new Uint8Array(bufLen);
+    analyserNode.getByteFrequencyData(data);
+    const barW = (W / bufLen) * 2.5;
+    let x = 0;
+    for (let i = 0; i < bufLen; i++) {
+      const v = data[i] / 255;
+      if (v > 0) {
+        const bh = v * H * 0.85;
+        canvasCtx.fillStyle = 'rgba(232,255,0,' + (0.3 + v * 0.7) + ')';
+        canvasCtx.fillRect(x, H - bh, Math.max(barW - 1, 1), bh);
+      }
+      x += barW + 1;
+    }
+  })();
+
+  // ── Status helper ──────────────────────────────────────────────────────────
+  function setStatus(state, msg, lat) {
+    statusDot.className    = 'status-dot'  + (state ? ' ' + state : '');
+    statusText.className   = 'status-text' + (state ? ' ' + state : '');
+    statusText.textContent = msg;
+    latencyEl.textContent  = lat || '';
+  }
+
+  // ── Populate device dropdowns ──────────────────────────────────────────────
+  // Safe to call at any time. Never triggers a permission prompt.
+  async function populateDevices() {
+    if (!canGetMic || !navigator.mediaDevices.enumerateDevices) return;
+    try {
+      const devices  = await navigator.mediaDevices.enumerateDevices();
+      const mics     = devices.filter(d => d.kind === 'audioinput');
+      const speakers = devices.filter(d => d.kind === 'audiooutput');
+
+      // Remember current selections to restore after rebuilding
+      const prevMic     = pendingMicId     || micSelect.value;
+      const prevSpeaker = pendingSpeakerId || speakerSelect.value;
+
+      // ── Input ──
+      micSelect.innerHTML = '';
+      const defMic = new Option('Default Mic', '');
+      micSelect.appendChild(defMic);
+
+      mics.forEach(function (d, i) {
+        // Skip virtual 'default' and 'communications' aliases — they duplicate real devices
+        if (d.deviceId === 'default' || d.deviceId === 'communications') return;
+        const o = new Option(d.label || ('Microphone ' + (i + 1)), d.deviceId);
+        micSelect.appendChild(o);
+      });
+
+      if (prevMic && Array.from(micSelect.options).some(function(o) { return o.value === prevMic; })) {
+        micSelect.value  = prevMic;
+        pendingMicId     = prevMic;
+      } else {
+        pendingMicId = '';
+      }
+
+      // ── Output ──
+      // Only show if setSinkId is supported AND the browser returns real output devices
+      const realSpeakers = speakers.filter(function(d) {
+        return d.deviceId !== 'default' && d.deviceId !== 'communications';
+      });
+
+      if (canSetSink && realSpeakers.length > 0) {
+        speakerSelect.innerHTML = '';
+        speakerSelect.appendChild(new Option('Default Output', ''));
+
+        realSpeakers.forEach(function(d, i) {
+          speakerSelect.appendChild(new Option(d.label || ('Speaker ' + (i + 1)), d.deviceId));
+        });
+
+        if (prevSpeaker && Array.from(speakerSelect.options).some(function(o) { return o.value === prevSpeaker; })) {
+          speakerSelect.value  = prevSpeaker;
+          pendingSpeakerId     = prevSpeaker;
+        } else {
+          pendingSpeakerId = '';
+        }
+
+        setOutputRowVisible(true);
+      } else {
+        // Browser can't select output — keep row hidden
+        setOutputRowVisible(false);
+        pendingSpeakerId = '';
+      }
+
+    } catch (e) {
+      console.warn('populateDevices:', e);
+    }
+  }
+
+  populateDevices();
+
+  // ── Teardown — release all audio resources ─────────────────────────────────
+  async function teardown() {
+    var nodes = [gainOutputNode, analyserNode, gainNode, sourceNode];
+    for (var i = 0; i < nodes.length; i++) {
+      try { if (nodes[i]) nodes[i].disconnect(); } catch (e) {}
+    }
+    sourceNode = gainNode = analyserNode = gainOutputNode = null;
+
+    if (stream) {
+      stream.getTracks().forEach(function(t) { t.stop(); });
+      stream = null;
+    }
+
+    if (audioCtx) {
+      try { await audioCtx.close(); } catch (e) {}
+      audioCtx = null;
+    }
+  }
+
+  // ── Start passthrough ──────────────────────────────────────────────────────
+  // IMPORTANT: This MUST be called directly from a synchronous user-gesture
+  // handler (click/touchend). Any async call chain breaks iOS AudioContext.
+  async function startPassthrough() {
+    if (isBusy || !AudioCtxCtor || !canGetMic) return;
+    isBusy = true;
+    powerBtn.disabled = true;
+    setStatus('', 'Requesting permission\u2026');
+
+    // ── Step 1: Create AudioContext SYNCHRONOUSLY ──────────────────────────
+    // iOS Safari requires AudioContext construction to happen in the same
+    // synchronous call stack as the user gesture. We must do this before
+    // the first `await`, otherwise resume() silently fails.
+    var newCtx = null;
+    try {
+      // 'interactive' = smallest buffer size the hardware supports = lowest latency
+      newCtx = new AudioCtxCtor({ latencyHint: 'interactive' });
+    } catch (e) {
+      // Some browsers (older Safari) don't accept constructor options — fall back
+      try { newCtx = new AudioCtxCtor(); } catch (e2) {
+        setStatus('error', 'Audio engine unavailable');
+        isBusy = false;
+        powerBtn.disabled = false;
+        return;
+      }
+    }
+
+    // ── Step 2: Async work (getUserMedia, setSinkId, resume) ──────────────
+    try {
+      var micId     = pendingMicId;
+      var speakerId = canSetSink ? pendingSpeakerId : '';
+
+      // Request the microphone stream
+      var constraints = {
+        audio: {
+          deviceId:         micId ? { exact: micId } : undefined,
+          echoCancellation: echoCancel,
+          noiseSuppression: echoCancel,
+          autoGainControl:  false,
+          // Request minimum hardware buffer size from the OS
+          latency: 0
+        }
+      };
+
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+      // Re-populate dropdowns now that permission is granted (adds real labels).
+      // We do NOT await this — it must not block audio setup.
+      populateDevices();
+
+      // Route to the chosen output device (Chrome 110+ only)
+      if (speakerId && typeof newCtx.setSinkId === 'function') {
+        try { await newCtx.setSinkId(speakerId); } catch (e) {}
+      }
+
+      // Resume the context. Because we created it synchronously in step 1,
+      // iOS Safari considers this still within the gesture and allows it.
+      if (newCtx.state === 'suspended') {
+        await newCtx.resume();
+      }
+
+      // Transfer ownership — teardown() now manages this context
+      audioCtx = newCtx;
+      newCtx   = null;
+
+      // ── Step 3: Build audio graph ──────────────────────────────────────
+      sourceNode = audioCtx.createMediaStreamSource(stream);
+
+      gainNode = audioCtx.createGain();
+      gainNode.gain.value = Number(gainSlider.value) / 10;
+
+      analyserNode = audioCtx.createAnalyser();
+      analyserNode.fftSize = 256;
+      analyserNode.smoothingTimeConstant = 0.8;
+
+      gainOutputNode = audioCtx.createGain();
+      gainOutputNode.gain.value = Number(volumeSlider.value) / 100;
+
+      sourceNode    .connect(gainNode);
+      gainNode      .connect(analyserNode);
+      analyserNode  .connect(gainOutputNode);
+      gainOutputNode.connect(audioCtx.destination);
+
+      isActive = true;
+      powerBtn.classList.add('active');
+
+      var lat = (audioCtx.baseLatency != null)
+        ? (Math.round(audioCtx.baseLatency * 1000) + 'ms') : '';
+      setStatus('on', 'Live \u2014 mic passthrough active', lat);
+
+    } catch (e) {
+      // Close any context not yet transferred
+      if (newCtx) { try { newCtx.close(); } catch (_) {} }
+      await teardown();
+      isActive = false;
+      powerBtn.classList.remove('active');
+
+      var msg;
+      var n = e.name || '';
+      if (n === 'NotAllowedError' || n === 'PermissionDeniedError') {
+        msg = 'Mic permission denied';
+      } else if (n === 'NotFoundError' || n === 'DevicesNotFoundError') {
+        msg = 'No microphone found';
+      } else if (n === 'NotReadableError' || n === 'TrackStartError') {
+        msg = 'Mic in use by another app';
+      } else if (n === 'OverconstrainedError' || n === 'ConstraintNotSatisfiedError') {
+        msg = 'Selected mic unavailable \u2014 try Default';
+        pendingMicId = '';
+        micSelect.value = '';
+      } else {
+        msg = e.message || 'Could not start';
+      }
+      setStatus('error', msg);
+    }
+
+    isBusy = false;
+    powerBtn.disabled = false;
+  }
+
+  // ── Stop passthrough ───────────────────────────────────────────────────────
+  async function stopPassthrough() {
+    if (isBusy) return;
+    isBusy = true;
+    powerBtn.disabled = true;
+
+    await teardown();
+
+    isActive = false;
+    powerBtn.classList.remove('active');
+    setStatus('', 'Standby \u2014 press power to begin');
+
+    isBusy = false;
+    powerBtn.disabled = false;
+  }
+
+  // ── Power button ───────────────────────────────────────────────────────────
+  // Use both 'click' and 'touchend' to ensure immediate response on iOS.
+  // We prevent the default on touchend to stop the 300ms click delay and
+  // avoid the click event firing twice.
+  var touchHandled = false;
+
+  powerBtn.addEventListener('touchend', function (e) {
+    e.preventDefault(); // prevent subsequent click
+    touchHandled = true;
+    if (isBusy) return;
+    if (isActive) { stopPassthrough(); } else { startPassthrough(); }
+  }, { passive: false });
+
+  powerBtn.addEventListener('click', function () {
+    if (touchHandled) { touchHandled = false; return; } // already handled by touchend
+    if (isBusy) return;
+    if (isActive) { stopPassthrough(); } else { startPassthrough(); }
+  });
+
+  // ── Volume ─────────────────────────────────────────────────────────────────
+  volumeSlider.addEventListener('input', function () {
+    var v = Number(volumeSlider.value);
+    volVal.textContent = v + '%';
+    if (gainOutputNode) gainOutputNode.gain.value = v / 100;
+  });
+
+  // ── Input gain ─────────────────────────────────────────────────────────────
+  gainSlider.addEventListener('input', function () {
+    var v = Number(gainSlider.value) / 10;
+    gainVal.textContent = v.toFixed(1) + '\u00d7';
+    if (gainNode) gainNode.gain.value = v;
+  });
+
+  // ── Device selectors ───────────────────────────────────────────────────────
+  // Store the pending choice. If we're live, restart via the power button path
+  // so we always go through a real user-gesture (required by iOS).
+  micSelect.addEventListener('change', function () {
+    pendingMicId = micSelect.value;
+    if (isActive && !isBusy) {
+      // stopPassthrough is safe to call from any context.
+      // startPassthrough needs a gesture — so we stop, then prompt the user.
+      stopPassthrough().then(function () {
+        setStatus('', 'Mic changed \u2014 press power to restart');
+      });
+    }
+  });
+
+  speakerSelect.addEventListener('change', function () {
+    pendingSpeakerId = speakerSelect.value;
+    if (isActive && !isBusy) {
+      stopPassthrough().then(function () {
+        setStatus('', 'Output changed \u2014 press power to restart');
+      });
+    }
+  });
+
+  // ── Echo cancel toggle ─────────────────────────────────────────────────────
+  var echoOnBtn  = document.getElementById('echoOn');
+  var echoOffBtn = document.getElementById('echoOff');
+
+  function setEchoCancel(val) {
+    echoCancel = val;
+    if (val) {
+      echoOnBtn.classList.add('on');
+      echoOffBtn.classList.remove('off');
+    } else {
+      echoOnBtn.classList.remove('on');
+      echoOffBtn.classList.add('off');
+    }
+    // If live, stop and ask user to restart (device restart needs a gesture)
+    if (isActive && !isBusy) {
+      stopPassthrough().then(function () {
+        setStatus('', 'Echo setting changed \u2014 press power to restart');
+      });
+    }
+  }
+
+  echoOnBtn.addEventListener('click',  function () { setEchoCancel(true);  });
+  echoOffBtn.addEventListener('click', function () { setEchoCancel(false); });
+  echoOnBtn.addEventListener('touchend',  function (e) { e.preventDefault(); setEchoCancel(true);  }, { passive: false });
+  echoOffBtn.addEventListener('touchend', function (e) { e.preventDefault(); setEchoCancel(false); }, { passive: false });
+
+  // ── Page visibility ────────────────────────────────────────────────────────
+  // Release the mic when the tab goes to background (screen lock, app switch).
+  // We only stop — the user must press power again to restart (required for iOS).
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && isActive && !isBusy) {
+      stopPassthrough();
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
