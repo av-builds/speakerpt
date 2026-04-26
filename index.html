@@ -18,7 +18,6 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
   html { min-height: 100%; }
 
   body {
@@ -71,10 +70,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 24px;
+    gap: 20px;
   }
 
-  /* ── Header ── */
   .header { text-align: center; }
 
   .title {
@@ -107,7 +105,7 @@
     color: var(--accent2);
     text-transform: uppercase;
     text-align: center;
-    line-height: 1.6;
+    line-height: 1.7;
   }
   .warning.visible { display: block; }
 
@@ -146,26 +144,16 @@
     padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 18px;
   }
 
-  /*
-   * Device grid: 2 cols when both rows are visible, 1 col otherwise.
-   * We use a data attribute on the grid to switch layout without media queries.
-   */
   .device-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
   }
-
-  .device-grid[data-cols="1"] {
-    grid-template-columns: 1fr;
-  }
-
-  @media (max-width: 380px) {
-    .device-grid { grid-template-columns: 1fr; }
-  }
+  .device-grid[data-cols="1"] { grid-template-columns: 1fr; }
+  @media (max-width: 380px) { .device-grid { grid-template-columns: 1fr; } }
 
   .device-row {
     display: flex;
@@ -173,7 +161,6 @@
     gap: 6px;
     min-width: 0;
   }
-
   .device-row.hidden { display: none; }
 
   /* ── Power button ── */
@@ -192,7 +179,6 @@
     outline: none;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    /* Ensure a reliable tap area on mobile */
     position: relative;
   }
 
@@ -204,7 +190,6 @@
     stroke-width: 2.5;
     stroke-linecap: round;
     transition: stroke 0.2s ease, filter 0.2s ease;
-    /* prevent SVG from swallowing pointer events */
     pointer-events: none;
   }
 
@@ -267,11 +252,9 @@
     border-radius: 2px;
     outline: none;
     cursor: pointer;
-    /* prevent page scroll on touch-drag of sliders */
     touch-action: pan-y;
   }
 
-  /* Webkit / Blink: Chrome, Safari, Edge, iOS Safari */
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 22px;
@@ -279,12 +262,10 @@
     background: var(--accent);
     border-radius: 3px;
     cursor: pointer;
-    transition: transform 0.1s;
     box-shadow: 0 0 8px rgba(232,255,0,0.5);
   }
-  input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
+  input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.15); }
 
-  /* Firefox */
   input[type="range"]::-moz-range-thumb {
     width: 22px;
     height: 22px;
@@ -300,93 +281,9 @@
     border-radius: 2px;
     border: none;
   }
-  /* Remove the default Firefox focus ring on range */
   input[type="range"]::-moz-focus-outer { border: 0; }
 
-  /* ── Status bar ── */
-  .status-bar {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-  }
-
-  .status-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--muted);
-    transition: background 0.3s, box-shadow 0.3s;
-    flex-shrink: 0;
-  }
-
-  .status-dot.on {
-    background: var(--accent);
-    box-shadow: 0 0 8px rgba(232,255,0,0.7);
-    animation: blink 1.5s infinite;
-  }
-
-  .status-dot.error {
-    background: var(--accent2);
-    box-shadow: 0 0 8px rgba(255,77,0,0.7);
-  }
-
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.4; }
-  }
-
-  .status-text {
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--muted);
-    text-transform: uppercase;
-    flex: 1;
-    transition: color 0.3s;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .status-text.on    { color: var(--accent); }
-  .status-text.error { color: var(--accent2); }
-
-  .latency {
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 2px;
-    flex-shrink: 0;
-  }
-
-  /* ── Selects ── */
-  select {
-    width: 100%;
-    min-width: 0;
-    background: #0d0d0d;
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    padding: 9px 26px 9px 10px;
-    border-radius: 2px;
-    outline: none;
-    cursor: pointer;
-    letter-spacing: 0.5px;
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23555' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 9px center;
-  }
-
-  select:focus { border-color: var(--accent); }
-  select option { background: #111; }
-
-  /* ── Echo cancel toggle ── */
+  /* ── Toggle rows ── */
   .toggle-row {
     display: flex;
     align-items: center;
@@ -399,6 +296,7 @@
     letter-spacing: 4px;
     text-transform: uppercase;
     color: var(--muted);
+    flex-shrink: 0;
   }
 
   .toggle-group {
@@ -425,14 +323,83 @@
   }
 
   .toggle-btn + .toggle-btn { border-left: 1px solid var(--border); }
-
-  .toggle-btn.on  { background: var(--accent); color: #000; }
-  .toggle-btn.off { background: var(--accent2); color: #fff; }
-
-  .toggle-btn:not(.on):not(.off):hover {
+  .toggle-btn.sel-on  { background: var(--accent); color: #000; }
+  .toggle-btn.sel-off { background: var(--accent2); color: #fff; }
+  .toggle-btn:not(.sel-on):not(.sel-off):hover {
     color: var(--text);
     background: rgba(255,255,255,0.05);
   }
+
+  /* ── Gate threshold slider hint ── */
+  .gate-row { display: none; }
+  .gate-row.visible { display: flex; }
+
+  /* ── Status bar ── */
+  .status-bar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: background 0.3s, box-shadow 0.3s;
+    flex-shrink: 0;
+  }
+  .status-dot.on    { background: var(--accent); box-shadow: 0 0 8px rgba(232,255,0,0.7); animation: blink 1.5s infinite; }
+  .status-dot.error { background: var(--accent2); box-shadow: 0 0 8px rgba(255,77,0,0.7); }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+  }
+
+  .status-text {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    flex: 1;
+    transition: color 0.3s;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .status-text.on    { color: var(--accent); }
+  .status-text.error { color: var(--accent2); }
+
+  .latency { font-size: 10px; color: var(--muted); letter-spacing: 2px; flex-shrink: 0; }
+
+  /* ── Selects ── */
+  select {
+    width: 100%;
+    min-width: 0;
+    background: #0d0d0d;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 9px 26px 9px 10px;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23555' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 9px center;
+  }
+  select:focus { border-color: var(--accent); }
+  select option { background: #111; }
 
   /* ── Footer ── */
   .footer {
@@ -446,7 +413,6 @@
 </style>
 </head>
 <body>
-
 <div class="container">
   <div class="header">
     <div class="title">AMPLIFY</div>
@@ -483,7 +449,7 @@
         <span class="slider-label">Volume</span>
         <span class="slider-value" id="volVal">80%</span>
       </div>
-      <input type="range" id="volumeSlider" min="0" max="200" value="80">
+      <input type="range" id="volumeSlider" min="0" max="150" value="80">
     </div>
 
     <div class="slider-row">
@@ -494,12 +460,22 @@
       <input type="range" id="gainSlider" min="1" max="40" value="10">
     </div>
 
+    <!-- Echo mode: SPEAKERS uses noise gate, HEADPHONES is clean passthrough -->
     <div class="toggle-row">
-      <span class="toggle-label-text">Echo Cancel</span>
+      <span class="toggle-label-text">Mode</span>
       <div class="toggle-group">
-        <button class="toggle-btn on"  id="echoOn"  type="button">On</button>
-        <button class="toggle-btn"     id="echoOff" type="button">Off</button>
+        <button class="toggle-btn sel-on" id="modeSpeaker" type="button">Speakers</button>
+        <button class="toggle-btn"        id="modeHeadphones" type="button">Headphones</button>
       </div>
+    </div>
+
+    <!-- Gate threshold — only shown in Speakers mode -->
+    <div class="slider-row gate-row visible" id="gateRow">
+      <div class="slider-header">
+        <span class="slider-label">Gate Threshold</span>
+        <span class="slider-value" id="gateVal">-40dB</span>
+      </div>
+      <input type="range" id="gateSlider" min="-80" max="-10" value="-40">
     </div>
   </div>
 
@@ -509,7 +485,7 @@
     <div class="latency" id="latency"></div>
   </div>
 
-  <div class="footer">Web Audio API · Use headphones to avoid feedback</div>
+  <div class="footer">Use headphones mode for cleanest audio · Speakers mode reduces echo</div>
 </div>
 
 <script>
@@ -517,315 +493,345 @@
   'use strict';
 
   // ── DOM ────────────────────────────────────────────────────────────────────
-  const powerBtn      = document.getElementById('powerBtn');
-  const volumeSlider  = document.getElementById('volumeSlider');
-  const gainSlider    = document.getElementById('gainSlider');
-  const volVal        = document.getElementById('volVal');
-  const gainVal       = document.getElementById('gainVal');
-  const statusDot     = document.getElementById('statusDot');
-  const statusText    = document.getElementById('statusText');
-  const latencyEl     = document.getElementById('latency');
-  const micSelect     = document.getElementById('micSelect');
-  const speakerSelect = document.getElementById('speakerSelect');
-  const outputRow     = document.getElementById('outputRow');
-  const deviceGrid    = document.getElementById('deviceGrid');
-  const canvas        = document.getElementById('visualizer');
-  const canvasCtx     = canvas.getContext('2d');
-  const warningEl     = document.getElementById('warning');
+  var powerBtn       = document.getElementById('powerBtn');
+  var volumeSlider   = document.getElementById('volumeSlider');
+  var gainSlider     = document.getElementById('gainSlider');
+  var gateSlider     = document.getElementById('gateSlider');
+  var volVal         = document.getElementById('volVal');
+  var gainVal        = document.getElementById('gainVal');
+  var gateVal        = document.getElementById('gateVal');
+  var statusDot      = document.getElementById('statusDot');
+  var statusText     = document.getElementById('statusText');
+  var latencyEl      = document.getElementById('latency');
+  var micSelect      = document.getElementById('micSelect');
+  var speakerSelect  = document.getElementById('speakerSelect');
+  var outputRow      = document.getElementById('outputRow');
+  var deviceGrid     = document.getElementById('deviceGrid');
+  var canvas         = document.getElementById('visualizer');
+  var canvasCtx      = canvas.getContext('2d');
+  var warningEl      = document.getElementById('warning');
+  var modeSpeakerBtn = document.getElementById('modeSpeaker');
+  var modeHpBtn      = document.getElementById('modeHeadphones');
+  var gateRow        = document.getElementById('gateRow');
 
   // ── Capability detection ───────────────────────────────────────────────────
-  const AudioCtxCtor = window.AudioContext || window.webkitAudioContext || null;
-  const canGetMic    = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  var AudioCtxCtor = window.AudioContext || window.webkitAudioContext || null;
+  var canGetMic    = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  var canSetSink   = AudioCtxCtor
+    ? (typeof AudioCtxCtor.prototype.setSinkId === 'function') : false;
 
-  // Whether AudioContext.prototype.setSinkId exists (Chrome 110+)
-  // This is the ONLY reliable cross-platform test — no UA sniffing.
-  const canSetSink = AudioCtxCtor
-    ? (typeof AudioCtxCtor.prototype.setSinkId === 'function')
-    : false;
+  // Android Chrome on file:// blocks mic — detect and warn
+  var isAndroid  = /android/i.test(navigator.userAgent);
+  var isFileProto = location.protocol === 'file:';
 
-  // Hide output selector until we confirm the browser can use it
-  setOutputRowVisible(false);
-
-  function setOutputRowVisible(visible) {
-    if (visible) {
-      outputRow.classList.remove('hidden');
-      deviceGrid.setAttribute('data-cols', '2');
-    } else {
-      outputRow.classList.add('hidden');
-      deviceGrid.setAttribute('data-cols', '1');
-    }
-  }
-
-  // ── Upfront warnings ───────────────────────────────────────────────────────
   function showWarning(msg) {
-    warningEl.textContent = msg;
+    warningEl.innerHTML = msg;
     warningEl.classList.add('visible');
   }
 
   if (!AudioCtxCtor) {
-    showWarning('Web Audio API is not supported in this browser.');
+    showWarning('Web Audio API not supported in this browser.');
     powerBtn.disabled = true;
   } else if (!canGetMic) {
-    showWarning('Microphone access requires HTTPS. Please serve this page over a secure connection.');
+    showWarning('Microphone access requires HTTPS.<br>Please host this file on a web server.');
+    powerBtn.disabled = true;
+  } else if (isAndroid && isFileProto) {
+    showWarning('Android Chrome requires HTTPS for mic access.<br>Host on GitHub Pages or Netlify — see instructions.');
     powerBtn.disabled = true;
   }
 
-  // ── Audio state ────────────────────────────────────────────────────────────
-  let audioCtx       = null;
-  let stream         = null;
-  let sourceNode     = null;
-  let gainNode       = null;
-  let analyserNode   = null;
-  let gainOutputNode = null;
-  let isActive       = false;
-  let isBusy         = false;
+  // Hide output row until confirmed supported
+  setOutputRowVisible(false);
 
-  // Pending device selections that will take effect on next start.
-  // On platforms where device change can't restart mid-gesture (iOS),
-  // we just store the intent and apply it when power is pressed.
-  let pendingMicId     = '';
-  let pendingSpeakerId = '';
+  function setOutputRowVisible(v) {
+    if (v) { outputRow.classList.remove('hidden'); deviceGrid.setAttribute('data-cols','2'); }
+    else   { outputRow.classList.add('hidden');    deviceGrid.setAttribute('data-cols','1'); }
+  }
 
-  // Echo / noise cancellation — ON by default to prevent speaker feedback
-  let echoCancel = true;
+  // ── State ──────────────────────────────────────────────────────────────────
+  var audioCtx        = null;
+  var stream          = null;
+  var sourceNode      = null;
+  var gainNode        = null;       // input gain
+  var compNode        = null;       // dynamics compressor (limiter / feedback brake)
+  var filterNode      = null;       // high-pass filter (cuts echo-prone low freqs)
+  var gateNode        = null;       // ScriptProcessor noise gate
+  var analyserNode    = null;       // visualiser tap (parallel, NOT in signal chain)
+  var gainOutputNode  = null;       // output volume
+  var isActive        = false;
+  var isBusy          = false;
+  var speakersMode    = true;       // true = speakers (gate+filter), false = headphones (clean)
+  var pendingMicId    = '';
+  var pendingSpeakerId = '';
 
-  // ── Canvas — defer sizing until after first paint ──────────────────────────
+  // ── Canvas ─────────────────────────────────────────────────────────────────
   function resizeCanvas() {
-    const dpr = window.devicePixelRatio || 1;
-    const w   = canvas.offsetWidth;
-    const h   = canvas.offsetHeight;
-    if (w > 0 && h > 0) {
-      canvas.width  = w * dpr;
-      canvas.height = h * dpr;
-    }
+    var dpr = window.devicePixelRatio || 1;
+    var w = canvas.offsetWidth, h = canvas.offsetHeight;
+    if (w > 0 && h > 0) { canvas.width = w * dpr; canvas.height = h * dpr; }
   }
   window.addEventListener('resize', resizeCanvas);
-  requestAnimationFrame(() => requestAnimationFrame(resizeCanvas));
+  requestAnimationFrame(function(){ requestAnimationFrame(resizeCanvas); });
 
-  // ── Visualizer loop ────────────────────────────────────────────────────────
-  (function drawVisualizer() {
-    requestAnimationFrame(drawVisualizer);
-    const W = canvas.width, H = canvas.height;
+  // ── Visualiser (reads from analyser which is tapped in parallel) ───────────
+  (function draw() {
+    requestAnimationFrame(draw);
+    var W = canvas.width, H = canvas.height;
     if (!W || !H) return;
     canvasCtx.clearRect(0, 0, W, H);
-
     if (!analyserNode || !isActive) {
       canvasCtx.strokeStyle = '#1f1f1f';
       canvasCtx.lineWidth = 1.5;
-      canvasCtx.beginPath();
-      canvasCtx.moveTo(0, H / 2);
-      canvasCtx.lineTo(W, H / 2);
-      canvasCtx.stroke();
+      canvasCtx.beginPath(); canvasCtx.moveTo(0, H/2); canvasCtx.lineTo(W, H/2); canvasCtx.stroke();
       return;
     }
-
-    const bufLen = analyserNode.frequencyBinCount;
-    const data   = new Uint8Array(bufLen);
-    analyserNode.getByteFrequencyData(data);
-    const barW = (W / bufLen) * 2.5;
-    let x = 0;
-    for (let i = 0; i < bufLen; i++) {
-      const v = data[i] / 255;
+    var buf = new Uint8Array(analyserNode.frequencyBinCount);
+    analyserNode.getByteFrequencyData(buf);
+    var bw = (W / buf.length) * 2.5, x = 0;
+    for (var i = 0; i < buf.length; i++) {
+      var v = buf[i] / 255;
       if (v > 0) {
-        const bh = v * H * 0.85;
         canvasCtx.fillStyle = 'rgba(232,255,0,' + (0.3 + v * 0.7) + ')';
-        canvasCtx.fillRect(x, H - bh, Math.max(barW - 1, 1), bh);
+        canvasCtx.fillRect(x, H - v * H * 0.85, Math.max(bw - 1, 1), v * H * 0.85);
       }
-      x += barW + 1;
+      x += bw + 1;
     }
   })();
 
-  // ── Status helper ──────────────────────────────────────────────────────────
+  // ── Status ─────────────────────────────────────────────────────────────────
   function setStatus(state, msg, lat) {
-    statusDot.className    = 'status-dot'  + (state ? ' ' + state : '');
-    statusText.className   = 'status-text' + (state ? ' ' + state : '');
+    statusDot.className  = 'status-dot'  + (state ? ' ' + state : '');
+    statusText.className = 'status-text' + (state ? ' ' + state : '');
     statusText.textContent = msg;
     latencyEl.textContent  = lat || '';
   }
 
-  // ── Populate device dropdowns ──────────────────────────────────────────────
-  // Safe to call at any time. Never triggers a permission prompt.
+  // ── Device population ──────────────────────────────────────────────────────
   async function populateDevices() {
     if (!canGetMic || !navigator.mediaDevices.enumerateDevices) return;
     try {
-      const devices  = await navigator.mediaDevices.enumerateDevices();
-      const mics     = devices.filter(d => d.kind === 'audioinput');
-      const speakers = devices.filter(d => d.kind === 'audiooutput');
+      var devices  = await navigator.mediaDevices.enumerateDevices();
+      var mics     = devices.filter(function(d){ return d.kind === 'audioinput'; });
+      var speakers = devices.filter(function(d){ return d.kind === 'audiooutput'; });
 
-      // Remember current selections to restore after rebuilding
-      const prevMic     = pendingMicId     || micSelect.value;
-      const prevSpeaker = pendingSpeakerId || speakerSelect.value;
+      var prevMic = pendingMicId || micSelect.value;
+      var prevSpk = pendingSpeakerId || speakerSelect.value;
 
-      // ── Input ──
       micSelect.innerHTML = '';
-      const defMic = new Option('Default Mic', '');
-      micSelect.appendChild(defMic);
-
-      mics.forEach(function (d, i) {
-        // Skip virtual 'default' and 'communications' aliases — they duplicate real devices
+      micSelect.appendChild(new Option('Default Mic', ''));
+      mics.forEach(function(d, i) {
         if (d.deviceId === 'default' || d.deviceId === 'communications') return;
-        const o = new Option(d.label || ('Microphone ' + (i + 1)), d.deviceId);
-        micSelect.appendChild(o);
+        micSelect.appendChild(new Option(d.label || ('Microphone ' + (i+1)), d.deviceId));
       });
+      if (prevMic && Array.from(micSelect.options).some(function(o){ return o.value === prevMic; })) {
+        micSelect.value = prevMic; pendingMicId = prevMic;
+      } else { pendingMicId = ''; }
 
-      if (prevMic && Array.from(micSelect.options).some(function(o) { return o.value === prevMic; })) {
-        micSelect.value  = prevMic;
-        pendingMicId     = prevMic;
-      } else {
-        pendingMicId = '';
-      }
-
-      // ── Output ──
-      // Only show if setSinkId is supported AND the browser returns real output devices
-      const realSpeakers = speakers.filter(function(d) {
+      var realSpk = speakers.filter(function(d){
         return d.deviceId !== 'default' && d.deviceId !== 'communications';
       });
-
-      if (canSetSink && realSpeakers.length > 0) {
+      if (canSetSink && realSpk.length > 0) {
         speakerSelect.innerHTML = '';
         speakerSelect.appendChild(new Option('Default Output', ''));
-
-        realSpeakers.forEach(function(d, i) {
-          speakerSelect.appendChild(new Option(d.label || ('Speaker ' + (i + 1)), d.deviceId));
+        realSpk.forEach(function(d, i) {
+          speakerSelect.appendChild(new Option(d.label || ('Speaker '+(i+1)), d.deviceId));
         });
-
-        if (prevSpeaker && Array.from(speakerSelect.options).some(function(o) { return o.value === prevSpeaker; })) {
-          speakerSelect.value  = prevSpeaker;
-          pendingSpeakerId     = prevSpeaker;
-        } else {
-          pendingSpeakerId = '';
-        }
-
+        if (prevSpk && Array.from(speakerSelect.options).some(function(o){ return o.value === prevSpk; })) {
+          speakerSelect.value = prevSpk; pendingSpeakerId = prevSpk;
+        } else { pendingSpeakerId = ''; }
         setOutputRowVisible(true);
       } else {
-        // Browser can't select output — keep row hidden
         setOutputRowVisible(false);
         pendingSpeakerId = '';
       }
-
-    } catch (e) {
-      console.warn('populateDevices:', e);
-    }
+    } catch(e) { console.warn('populateDevices:', e); }
   }
-
   populateDevices();
 
-  // ── Teardown — release all audio resources ─────────────────────────────────
-  async function teardown() {
-    var nodes = [gainOutputNode, analyserNode, gainNode, sourceNode];
-    for (var i = 0; i < nodes.length; i++) {
-      try { if (nodes[i]) nodes[i].disconnect(); } catch (e) {}
-    }
-    sourceNode = gainNode = analyserNode = gainOutputNode = null;
+  // ── Noise gate via ScriptProcessorNode ─────────────────────────────────────
+  // ScriptProcessorNode is deprecated but works on ALL browsers/platforms
+  // including iOS Safari, old Android, file://, etc.
+  // AudioWorklet would be better but requires HTTPS + module loading.
+  //
+  // The gate: if the RMS level of a buffer is below the threshold, output silence.
+  // This breaks the feedback loop — quiet room reflections are gated out.
+  function createGateNode(ctx, thresholdDb) {
+    var bufSize = 256; // smallest buffer = least added latency
+    var gate = ctx.createScriptProcessor(bufSize, 1, 1);
+    var thresholdLinear = dbToLinear(thresholdDb);
+    gate._thresholdDb = thresholdDb;
 
-    if (stream) {
-      stream.getTracks().forEach(function(t) { t.stop(); });
-      stream = null;
-    }
-
-    if (audioCtx) {
-      try { await audioCtx.close(); } catch (e) {}
-      audioCtx = null;
-    }
+    gate.onaudioprocess = function(e) {
+      var input  = e.inputBuffer.getChannelData(0);
+      var output = e.outputBuffer.getChannelData(0);
+      // Compute RMS of this buffer
+      var sum = 0;
+      for (var i = 0; i < input.length; i++) sum += input[i] * input[i];
+      var rms = Math.sqrt(sum / input.length);
+      if (rms < thresholdLinear) {
+        // Below threshold — output silence
+        for (var j = 0; j < output.length; j++) output[j] = 0;
+      } else {
+        // Above threshold — pass through
+        for (var k = 0; k < output.length; k++) output[k] = input[k];
+      }
+    };
+    return gate;
   }
 
-  // ── Start passthrough ──────────────────────────────────────────────────────
-  // IMPORTANT: This MUST be called directly from a synchronous user-gesture
-  // handler (click/touchend). Any async call chain breaks iOS AudioContext.
+  function dbToLinear(db) {
+    return Math.pow(10, db / 20);
+  }
+
+  // ── Teardown ───────────────────────────────────────────────────────────────
+  async function teardown() {
+    var nodes = [gainOutputNode, gateNode, filterNode, compNode, analyserNode, gainNode, sourceNode];
+    for (var i = 0; i < nodes.length; i++) {
+      try { if (nodes[i]) nodes[i].disconnect(); } catch(e) {}
+      // Kill ScriptProcessor's callback to prevent zombie processing
+      if (nodes[i] && nodes[i].onaudioprocess) nodes[i].onaudioprocess = null;
+    }
+    sourceNode = gainNode = compNode = filterNode = gateNode = analyserNode = gainOutputNode = null;
+    if (stream) { stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; }
+    if (audioCtx) { try { await audioCtx.close(); } catch(e) {} audioCtx = null; }
+  }
+
+  // ── Start ──────────────────────────────────────────────────────────────────
+  // MUST be called from a direct synchronous user gesture (click/touchend).
+  // iOS Safari requires AudioContext creation to happen before any await.
   async function startPassthrough() {
     if (isBusy || !AudioCtxCtor || !canGetMic) return;
     isBusy = true;
     powerBtn.disabled = true;
     setStatus('', 'Requesting permission\u2026');
 
-    // ── Step 1: Create AudioContext SYNCHRONOUSLY ──────────────────────────
-    // iOS Safari requires AudioContext construction to happen in the same
-    // synchronous call stack as the user gesture. We must do this before
-    // the first `await`, otherwise resume() silently fails.
+    // ── STEP 1: Create AudioContext synchronously (iOS requirement) ──
     var newCtx = null;
     try {
-      // 'interactive' = smallest buffer size the hardware supports = lowest latency
       newCtx = new AudioCtxCtor({ latencyHint: 'interactive' });
-    } catch (e) {
-      // Some browsers (older Safari) don't accept constructor options — fall back
-      try { newCtx = new AudioCtxCtor(); } catch (e2) {
+    } catch(e) {
+      try { newCtx = new AudioCtxCtor(); } catch(e2) {
         setStatus('error', 'Audio engine unavailable');
-        isBusy = false;
-        powerBtn.disabled = false;
-        return;
+        isBusy = false; powerBtn.disabled = false; return;
       }
     }
 
-    // ── Step 2: Async work (getUserMedia, setSinkId, resume) ──────────────
+    // ── STEP 2: Async operations ──
     try {
       var micId     = pendingMicId;
       var speakerId = canSetSink ? pendingSpeakerId : '';
 
-      // Request the microphone stream
+      // Build getUserMedia constraints.
+      // KEY DECISION: We always set echoCancellation: FALSE.
+      // Browser AEC is designed for video calls and kills passthrough audio.
+      // We handle echo ourselves with a noise gate + high-pass filter instead.
       var constraints = {
         audio: {
           deviceId:         micId ? { exact: micId } : undefined,
-          echoCancellation: echoCancel,
-          noiseSuppression: echoCancel,
-          autoGainControl:  false,
-          // Request minimum hardware buffer size from the OS
-          latency: 0
+          echoCancellation: false,  // browser AEC destroys passthrough — we gate instead
+          noiseSuppression: false,  // same — kills audio
+          autoGainControl:  false,  // we control gain manually
+          latency:          0       // request minimum hardware buffer
         }
       };
 
       stream = await navigator.mediaDevices.getUserMedia(constraints);
 
-      // Re-populate dropdowns now that permission is granted (adds real labels).
-      // We do NOT await this — it must not block audio setup.
-      populateDevices();
+      // Re-populate device labels now that permission is granted
+      populateDevices(); // fire-and-forget
 
-      // Route to the chosen output device (Chrome 110+ only)
+      // Route to chosen output device (Chrome 110+ only)
       if (speakerId && typeof newCtx.setSinkId === 'function') {
-        try { await newCtx.setSinkId(speakerId); } catch (e) {}
+        try { await newCtx.setSinkId(speakerId); } catch(e) {}
       }
 
-      // Resume the context. Because we created it synchronously in step 1,
-      // iOS Safari considers this still within the gesture and allows it.
-      if (newCtx.state === 'suspended') {
-        await newCtx.resume();
-      }
+      // Resume context (required; iOS allowed because ctx was created synchronously above)
+      if (newCtx.state === 'suspended') await newCtx.resume();
 
-      // Transfer ownership — teardown() now manages this context
       audioCtx = newCtx;
-      newCtx   = null;
+      newCtx = null; // ownership transferred
 
-      // ── Step 3: Build audio graph ──────────────────────────────────────
+      // ── STEP 3: Build audio graph ──────────────────────────────────────────
+      //
+      // SIGNAL CHAIN (Speakers mode):
+      //   mic → inputGain → compressor → highPassFilter → noiseGate → outputGain → speakers
+      //                                                              ↘ analyser (visualiser only)
+      //
+      // SIGNAL CHAIN (Headphones mode — clean, no processing):
+      //   mic → inputGain → outputGain → headphones
+      //                   ↘ analyser (visualiser only)
+      //
+      // The analyser is tapped BEFORE the output gain but PARALLEL to the chain
+      // using a second connect(). It does NOT add any latency to the signal path.
+
       sourceNode = audioCtx.createMediaStreamSource(stream);
 
       gainNode = audioCtx.createGain();
       gainNode.gain.value = Number(gainSlider.value) / 10;
 
+      gainOutputNode = audioCtx.createGain();
+      gainOutputNode.gain.value = Number(volumeSlider.value) / 100;
+
+      // Analyser — tapped in parallel, adds zero latency to signal
       analyserNode = audioCtx.createAnalyser();
       analyserNode.fftSize = 256;
       analyserNode.smoothingTimeConstant = 0.8;
 
-      gainOutputNode = audioCtx.createGain();
-      gainOutputNode.gain.value = Number(volumeSlider.value) / 100;
+      if (speakersMode) {
+        // ── Speakers mode: add feedback protection chain ──
 
-      sourceNode    .connect(gainNode);
-      gainNode      .connect(analyserNode);
-      analyserNode  .connect(gainOutputNode);
-      gainOutputNode.connect(audioCtx.destination);
+        // High-pass filter: cuts frequencies below 100Hz.
+        // Low frequencies build resonance and echo faster; cutting them
+        // breaks the feedback loop without affecting voice intelligibility.
+        filterNode = audioCtx.createBiquadFilter();
+        filterNode.type = 'highpass';
+        filterNode.frequency.value = 100;
+        filterNode.Q.value = 0.7;
+
+        // Compressor acting as a limiter: prevents runaway gain from feedback.
+        // Threshold low, ratio high = hard limiter. Attack fast so spikes are caught.
+        compNode = audioCtx.createDynamicsCompressor();
+        compNode.threshold.value = -20;
+        compNode.knee.value      = 3;
+        compNode.ratio.value     = 16;
+        compNode.attack.value    = 0.002; // 2ms — catches feedback spikes fast
+        compNode.release.value   = 0.1;
+
+        // Noise gate: cuts audio below threshold, breaking the feedback loop
+        var gateThreshDb = Number(gateSlider.value);
+        gateNode = createGateNode(audioCtx, gateThreshDb);
+
+        // Wire: mic → gain → compressor → filter → gate → outputGain → speakers
+        sourceNode .connect(gainNode);
+        gainNode   .connect(compNode);
+        compNode   .connect(filterNode);
+        filterNode .connect(gateNode);
+        gateNode   .connect(gainOutputNode);
+        gainOutputNode.connect(audioCtx.destination);
+
+        // Analyser tap (parallel off gainNode — before all processing)
+        gainNode.connect(analyserNode);
+
+      } else {
+        // ── Headphones mode: clean direct passthrough ──
+        sourceNode    .connect(gainNode);
+        gainNode      .connect(gainOutputNode);
+        gainOutputNode.connect(audioCtx.destination);
+        gainNode.connect(analyserNode);
+      }
 
       isActive = true;
       powerBtn.classList.add('active');
-
-      var lat = (audioCtx.baseLatency != null)
+      var lat = audioCtx.baseLatency != null
         ? (Math.round(audioCtx.baseLatency * 1000) + 'ms') : '';
-      setStatus('on', 'Live \u2014 mic passthrough active', lat);
+      var modeLabel = speakersMode ? 'Speakers mode' : 'Headphones mode';
+      setStatus('on', 'Live \u2014 ' + modeLabel, lat);
 
-    } catch (e) {
-      // Close any context not yet transferred
-      if (newCtx) { try { newCtx.close(); } catch (_) {} }
+    } catch(e) {
+      if (newCtx) { try { newCtx.close(); } catch(_) {} }
       await teardown();
       isActive = false;
       powerBtn.classList.remove('active');
-
       var msg;
       var n = e.name || '';
       if (n === 'NotAllowedError' || n === 'PermissionDeniedError') {
@@ -836,123 +842,135 @@
         msg = 'Mic in use by another app';
       } else if (n === 'OverconstrainedError' || n === 'ConstraintNotSatisfiedError') {
         msg = 'Selected mic unavailable \u2014 try Default';
-        pendingMicId = '';
-        micSelect.value = '';
+        pendingMicId = ''; micSelect.value = '';
       } else {
         msg = e.message || 'Could not start';
       }
       setStatus('error', msg);
     }
-
     isBusy = false;
     powerBtn.disabled = false;
   }
 
-  // ── Stop passthrough ───────────────────────────────────────────────────────
+  // ── Stop ───────────────────────────────────────────────────────────────────
   async function stopPassthrough() {
     if (isBusy) return;
     isBusy = true;
     powerBtn.disabled = true;
-
     await teardown();
-
     isActive = false;
     powerBtn.classList.remove('active');
     setStatus('', 'Standby \u2014 press power to begin');
-
     isBusy = false;
     powerBtn.disabled = false;
   }
 
   // ── Power button ───────────────────────────────────────────────────────────
-  // Use both 'click' and 'touchend' to ensure immediate response on iOS.
-  // We prevent the default on touchend to stop the 300ms click delay and
-  // avoid the click event firing twice.
   var touchHandled = false;
 
-  powerBtn.addEventListener('touchend', function (e) {
-    e.preventDefault(); // prevent subsequent click
+  powerBtn.addEventListener('touchend', function(e) {
+    e.preventDefault();
     touchHandled = true;
     if (isBusy) return;
     if (isActive) { stopPassthrough(); } else { startPassthrough(); }
   }, { passive: false });
 
-  powerBtn.addEventListener('click', function () {
-    if (touchHandled) { touchHandled = false; return; } // already handled by touchend
+  powerBtn.addEventListener('click', function() {
+    if (touchHandled) { touchHandled = false; return; }
     if (isBusy) return;
     if (isActive) { stopPassthrough(); } else { startPassthrough(); }
   });
 
   // ── Volume ─────────────────────────────────────────────────────────────────
-  volumeSlider.addEventListener('input', function () {
+  volumeSlider.addEventListener('input', function() {
     var v = Number(volumeSlider.value);
     volVal.textContent = v + '%';
     if (gainOutputNode) gainOutputNode.gain.value = v / 100;
   });
 
   // ── Input gain ─────────────────────────────────────────────────────────────
-  gainSlider.addEventListener('input', function () {
+  gainSlider.addEventListener('input', function() {
     var v = Number(gainSlider.value) / 10;
     gainVal.textContent = v.toFixed(1) + '\u00d7';
     if (gainNode) gainNode.gain.value = v;
   });
 
-  // ── Device selectors ───────────────────────────────────────────────────────
-  // Store the pending choice. If we're live, restart via the power button path
-  // so we always go through a real user-gesture (required by iOS).
-  micSelect.addEventListener('change', function () {
+  // ── Gate threshold ─────────────────────────────────────────────────────────
+  gateSlider.addEventListener('input', function() {
+    var db = Number(gateSlider.value);
+    gateVal.textContent = db + 'dB';
+    // Update gate node threshold live without restarting
+    if (gateNode) {
+      gateNode._thresholdDb = db;
+      // Rebuild the linear threshold that onaudioprocess reads
+      var linear = dbToLinear(db);
+      gateNode.onaudioprocess = (function(thresh) {
+        return function(e) {
+          var inp = e.inputBuffer.getChannelData(0);
+          var out = e.outputBuffer.getChannelData(0);
+          var sum = 0;
+          for (var i = 0; i < inp.length; i++) sum += inp[i] * inp[i];
+          var rms = Math.sqrt(sum / inp.length);
+          if (rms < thresh) {
+            for (var j = 0; j < out.length; j++) out[j] = 0;
+          } else {
+            for (var k = 0; k < out.length; k++) out[k] = inp[k];
+          }
+        };
+      })(linear);
+    }
+  });
+
+  // ── Mode toggle ────────────────────────────────────────────────────────────
+  function setMode(speakers) {
+    speakersMode = speakers;
+    if (speakers) {
+      modeSpeakerBtn.classList.add('sel-on');
+      modeHpBtn.classList.remove('sel-on');
+      gateRow.classList.add('visible');
+    } else {
+      modeSpeakerBtn.classList.remove('sel-on');
+      modeHpBtn.classList.add('sel-on');
+      gateRow.classList.remove('visible');
+    }
+    if (isActive && !isBusy) {
+      stopPassthrough().then(function() {
+        setStatus('', 'Mode changed \u2014 press power to restart');
+      });
+    }
+  }
+
+  function addToggle(btn, val) {
+    btn.addEventListener('click', function() { setMode(val); });
+    btn.addEventListener('touchend', function(e) {
+      e.preventDefault(); setMode(val);
+    }, { passive: false });
+  }
+  addToggle(modeSpeakerBtn, true);
+  addToggle(modeHpBtn, false);
+
+  // ── Device selectors ────────────────────────────────────────────────────────
+  micSelect.addEventListener('change', function() {
     pendingMicId = micSelect.value;
     if (isActive && !isBusy) {
-      // stopPassthrough is safe to call from any context.
-      // startPassthrough needs a gesture — so we stop, then prompt the user.
-      stopPassthrough().then(function () {
+      stopPassthrough().then(function() {
         setStatus('', 'Mic changed \u2014 press power to restart');
       });
     }
   });
 
-  speakerSelect.addEventListener('change', function () {
+  speakerSelect.addEventListener('change', function() {
     pendingSpeakerId = speakerSelect.value;
     if (isActive && !isBusy) {
-      stopPassthrough().then(function () {
+      stopPassthrough().then(function() {
         setStatus('', 'Output changed \u2014 press power to restart');
       });
     }
   });
 
-  // ── Echo cancel toggle ─────────────────────────────────────────────────────
-  var echoOnBtn  = document.getElementById('echoOn');
-  var echoOffBtn = document.getElementById('echoOff');
-
-  function setEchoCancel(val) {
-    echoCancel = val;
-    if (val) {
-      echoOnBtn.classList.add('on');
-      echoOffBtn.classList.remove('off');
-    } else {
-      echoOnBtn.classList.remove('on');
-      echoOffBtn.classList.add('off');
-    }
-    // If live, stop and ask user to restart (device restart needs a gesture)
-    if (isActive && !isBusy) {
-      stopPassthrough().then(function () {
-        setStatus('', 'Echo setting changed \u2014 press power to restart');
-      });
-    }
-  }
-
-  echoOnBtn.addEventListener('click',  function () { setEchoCancel(true);  });
-  echoOffBtn.addEventListener('click', function () { setEchoCancel(false); });
-  echoOnBtn.addEventListener('touchend',  function (e) { e.preventDefault(); setEchoCancel(true);  }, { passive: false });
-  echoOffBtn.addEventListener('touchend', function (e) { e.preventDefault(); setEchoCancel(false); }, { passive: false });
-
-  // ── Page visibility ────────────────────────────────────────────────────────
-  // Release the mic when the tab goes to background (screen lock, app switch).
-  // We only stop — the user must press power again to restart (required for iOS).
-  document.addEventListener('visibilitychange', function () {
-    if (document.hidden && isActive && !isBusy) {
-      stopPassthrough();
-    }
+  // ── Page visibility ─────────────────────────────────────────────────────────
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden && isActive && !isBusy) stopPassthrough();
   });
 
 })();
